@@ -1,0 +1,12 @@
+/Library/
+/obj/
+/Temp/
+/.vs/
+/Logs/
+/.vsconfig
+*.csproj
+*.sln
+/WebGl/
+/Build/
+/ProjectSettings/ProjectVersion.txt
+.DS_Store
