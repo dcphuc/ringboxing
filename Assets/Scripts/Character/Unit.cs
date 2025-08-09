@@ -4,12 +4,14 @@ using System.Collections.Generic;
 using UnityEngine.UI;
 using UnityEngine.AI;
 using System.Linq;
+using System;
 
 public class Unit : MonoBehaviour
 {
     [SerializeField] private float health;
     [SerializeField] private float attackDamage;
     [SerializeField] private float attackSpeed = 1f;
+    [SerializeField] private float speed = 1f;
     [SerializeField] private string _attackTag = null;
     private NavMeshAgent agent;
     private Animator animator;
@@ -45,38 +47,62 @@ public class Unit : MonoBehaviour
 
         //find the area so the character can walk around
         area = GameObject.FindObjectOfType<WalkArea>();
+
+        GameManager.Instance.OnMovement += MovementByJoystick;
     }
 
     private void FixedUpdate()
     {
-        if (CurrentTarget == null && GameObject.FindGameObjectsWithTag(_attackTag).Length > 0)
-            CurrentTarget = FindCurrentTarget();
+        // if (CurrentTarget == null && GameObject.FindGameObjectsWithTag(_attackTag).Length > 0)
+        //     CurrentTarget = FindCurrentTarget();
 
-        if (health < 1 && !dead)
-        {
-            dead = true;
-            UpdateState(CharacterState.Dead);
-        }
+        // if (health < 1 && !dead)
+        // {
+        //     dead = true;
+        //     UpdateState(CharacterState.Dead);
+        // }
 
-        if (CurrentTarget != null)
-        {
-            if (Vector3.Distance(CurrentTarget.position, transform.position) <= agent.stoppingDistance)
-            {
-                UpdateState(CharacterState.Attacking);
-                Vector3 currentTargetPosition = CurrentTarget.position;
-                currentTargetPosition.y = transform.position.y;
-                transform.LookAt(currentTargetPosition);
-            }
-            else
-            {
-                UpdateState(CharacterState.Walking);
-                if (agent.stoppingDistance != defaultStoppingDistance)
-                    agent.stoppingDistance = defaultStoppingDistance;
+        // if (CurrentTarget != null)
+        // {
+        //     if (Vector3.Distance(CurrentTarget.position, transform.position) <= agent.stoppingDistance)
+        //     {
+        //         UpdateState(CharacterState.Attacking);
+        //         Vector3 currentTargetPosition = CurrentTarget.position;
+        //         currentTargetPosition.y = transform.position.y;
+        //         transform.LookAt(currentTargetPosition);
+        //     }
+        //     else
+        //     {
+        //         UpdateState(CharacterState.Walking);
+        //         if (agent.stoppingDistance != defaultStoppingDistance)
+        //             agent.stoppingDistance = defaultStoppingDistance;
 
-                agent.isStopped = false;
-                agent.destination = CurrentTarget.position;
-            }
-        }
+        //         agent.isStopped = false;
+        //         agent.destination = CurrentTarget.position;
+        //     }
+        // }
+    }
+
+    private void MovementByJoystick(Vector2 amount)
+    {
+        var formatAmount = RotateVector2WithCamera(amount);
+        Vector3 pos = transform.position;
+        pos.x += (formatAmount.x * speed * Time.fixedDeltaTime);
+        pos.z += (formatAmount.y * speed * Time.fixedDeltaTime);
+        transform.position = pos;
+    }
+
+    Vector2 RotateVector2WithCamera(Vector2 vector)
+    {
+        float cameraYRotation = Camera.main.transform.eulerAngles.y;
+
+        float angleInRadians = cameraYRotation * Mathf.Deg2Rad;
+        float angle = Mathf.Atan2(vector.y, vector.x) - Mathf.Abs(angleInRadians);
+        float radius = vector.magnitude;
+        return new Vector2(
+            radius * Mathf.Cos(angle),
+            radius * Mathf.Sin(angle)
+        );
     }
 
     private void UpdateState(CharacterState newState)
