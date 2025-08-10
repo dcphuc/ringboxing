@@ -30,6 +30,9 @@ public class GameManager : MonoBehaviour
             Vector2 direction = joystick.Direction;
             OnMovement?.Invoke(direction);
         }
+
+
     }
+
 
 }
